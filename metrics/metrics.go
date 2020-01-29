@@ -227,7 +227,6 @@ func (r *Metrics) filterReleases(releases *[]Release) {
 		}
 		release.filterAssets(r.Config.match)
 		if len(*release.Assets) > 0 {
-			//log.Info(release.getName("patch"))
 			input := release
 			r.Input <- &input
 		}
