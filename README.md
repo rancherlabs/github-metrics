@@ -1,5 +1,7 @@
 # github-metrics
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/rawmind0/github-metrics)](https://goreportcard.com/report/github.com/rawmind0/github-metrics)
+
 Utility to get github repo, releases and assets metrics.
 
 ## Building

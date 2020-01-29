@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	// Blank import required by vendor
 	_ "github.com/influxdata/influxdb1-client"
 	influx "github.com/influxdata/influxdb1-client/v2"
 	log "github.com/sirupsen/logrus"
@@ -13,18 +14,19 @@ import (
 
 const (
 	influxFlush = 60
-	influxCheck = 3600
 )
 
 var csvSeparator string
 
+// Metric interface
 type Metric interface {
-	printJson()
+	printJSON()
 	printCSV()
 	printInflux()
 	getPoint() []influx.Point
 }
 
+// Metrics struct
 type Metrics struct {
 	Input   chan Metric
 	Exit    chan os.Signal
@@ -32,6 +34,7 @@ type Metrics struct {
 	Config  *Config
 }
 
+// NewMetrics function
 func NewMetrics(conf *Config) *Metrics {
 	r := &Metrics{
 		Readers: []chan struct{}{},
@@ -52,28 +55,23 @@ func NewMetrics(conf *Config) *Metrics {
 	return r
 }
 
-func (r *Metrics) Close() {
-	close(r.Input)
-	close(r.Exit)
-
-}
-
 func (r *Metrics) addReader() chan struct{} {
-	chan_new := make(chan struct{}, 1)
-	r.Readers = append(r.Readers, chan_new)
+	chanNew := make(chan struct{}, 1)
+	r.Readers = append(r.Readers, chanNew)
 
-	return chan_new
+	return chanNew
 }
 
 func (r *Metrics) closeReaders() {
-	for _, r_chan := range r.Readers {
-		if r_chan != nil {
-			r_chan <- struct{}{}
+	for _, rChan := range r.Readers {
+		if rChan != nil {
+			rChan <- struct{}{}
 		}
 	}
 	r.Readers = nil
 }
 
+// GetData gets all metrics data
 func (r *Metrics) GetData() {
 	var in, out sync.WaitGroup
 	indone := make(chan struct{}, 1)
@@ -257,7 +255,7 @@ func (r *Metrics) print() {
 				return
 			}
 			if r.Config.output == "json" {
-				metric.printJson()
+				metric.printJSON()
 			}
 			if r.Config.output == "csv" {
 				metric.printCSV()
@@ -271,7 +269,7 @@ func (r *Metrics) print() {
 
 func (r *Metrics) sendToInflux() {
 	var points []influx.Point
-	var index, p_len int
+	var index, pLen int
 
 	i := newInflux(r.Config.influxurl, r.Config.influxdb, r.Config.influxuser, r.Config.influxpass)
 
@@ -279,7 +277,7 @@ func (r *Metrics) sendToInflux() {
 		connected := i.CheckConnect(influxCheck)
 		defer i.Close()
 
-		ticker := time.NewTicker(time.Second * time.Duration(influxFlush))
+		ticker := time.NewTicker(time.Second * time.Duration(r.Config.flush))
 
 		index = 0
 		for {
@@ -299,8 +297,8 @@ func (r *Metrics) sendToInflux() {
 				if p != nil {
 					m := p.getPoint()
 					points = append(points, m...)
-					p_len = len(points)
-					if p_len == r.Config.batch {
+					pLen = len(points)
+					if pLen == r.Config.batch {
 						if i.sendToInflux(points, 1) {
 							points = []influx.Point{}
 						} else {
@@ -309,8 +307,8 @@ func (r *Metrics) sendToInflux() {
 					}
 					index++
 				} else {
-					p_len = len(points)
-					if p_len > 0 {
+					pLen = len(points)
+					if pLen > 0 {
 						if i.sendToInflux(points, 1) {
 							points = []influx.Point{}
 						}

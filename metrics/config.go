@@ -8,6 +8,7 @@ import (
 
 const githubAPIURL = "https://api.github.com/repos"
 
+// Config struct
 type Config struct {
 	batch      int
 	csvSep     string
@@ -32,6 +33,7 @@ type Config struct {
 	interval   time.Duration
 }
 
+// NewConfig function
 func NewConfig(ctx *cli.Context) *Config {
 	interval, _ := time.ParseDuration(ctx.GlobalString("interval"))
 

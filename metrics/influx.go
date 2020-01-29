@@ -3,6 +3,7 @@ package metrics
 import (
 	"time"
 
+	// Blank import required by vendor
 	_ "github.com/influxdata/influxdb1-client"
 	influx "github.com/influxdata/influxdb1-client/v2"
 	log "github.com/sirupsen/logrus"
@@ -14,6 +15,7 @@ func check(e error, m string) {
 	}
 }
 
+// Influx struct
 type Influx struct {
 	url     string
 	db      string
@@ -36,8 +38,8 @@ func newInflux(u, d, us, pa string) *Influx {
 	return a
 }
 
-func (i *Influx) Check(retry int) bool {
-	resp_time, _, err := i.cli.Ping(i.timeout)
+func (i *Influx) check(retry int) bool {
+	respTime, _, err := i.cli.Ping(i.timeout)
 	if err != nil {
 		log.Error("[Error]: ", err)
 		log.Error("Influx disconnected...")
@@ -52,33 +54,27 @@ func (i *Influx) Check(retry int) bool {
 		if err != nil {
 			log.Error("Failed to connect to influx ", i.url)
 			return false
-		} else {
-			log.Info("Influx response time: ", resp_time)
-			return true
 		}
-	} else {
-		log.Info("Influx response time: ", resp_time)
+		log.Info("Influx response time: ", respTime)
 		return true
 	}
+	log.Info("Influx response time: ", respTime)
+	return true
 }
 
+// CheckConnect function
 func (i *Influx) CheckConnect(interval int) chan bool {
 	ticker := time.NewTicker(time.Second * time.Duration(interval))
 
 	connected := make(chan bool)
 
 	go func() {
-		running := false
 		for {
 			select {
 			case <-ticker.C:
-				if !running {
-					running = true
-					if !i.Check(2) {
-						close(connected)
-						return
-					}
-					running = false
+				if !i.check(2) {
+					close(connected)
+					return
 				}
 			}
 		}
@@ -87,6 +83,7 @@ func (i *Influx) CheckConnect(interval int) chan bool {
 	return connected
 }
 
+// Connect function
 func (i *Influx) Connect() bool {
 	var err error
 	log.Info("Connecting to Influx...")
@@ -102,18 +99,18 @@ func (i *Influx) Connect() bool {
 		return false
 	}
 
-	if i.Check(0) {
+	if i.check(0) {
 		i.createDb()
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
-func (i *Influx) Init() {
+func (i *Influx) init() {
 	i.newBatch()
 }
 
+// Close function
 func (i *Influx) Close() {
 	message := "Closing Influx connection..."
 	err := i.cli.Close()
@@ -178,12 +175,11 @@ func (i *Influx) Write() {
 }
 
 func (i *Influx) sendToInflux(m []influx.Point, retry int) bool {
-	if i.Check(retry) {
-		i.Init()
+	if i.check(retry) {
+		i.init()
 		i.newPoints(m)
 		i.Write()
 		return true
-	} else {
-		return false
 	}
+	return false
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	// Blank import required by vendor
 	_ "github.com/influxdata/influxdb1-client"
 	influx "github.com/influxdata/influxdb1-client/v2"
 	log "github.com/sirupsen/logrus"
@@ -12,6 +13,7 @@ import (
 
 const repoKind = "repo"
 
+// Repo struct
 type Repo struct {
 	Forks    int64  `json:"forks_count"`
 	Issues   int64  `json:"open_issues_count"`
@@ -21,7 +23,7 @@ type Repo struct {
 	Watchers int64  `json:"subscribers_count"`
 }
 
-func (r *Repo) printJson() {
+func (r *Repo) printJSON() {
 	v := map[string]interface{}{
 		"forks":    r.Forks,
 		"issues":   r.Issues,

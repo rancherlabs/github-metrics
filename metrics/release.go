@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"time"
 
+	// Blank import required by vendor
 	_ "github.com/influxdata/influxdb1-client"
 	influx "github.com/influxdata/influxdb1-client/v2"
 	log "github.com/sirupsen/logrus"
@@ -13,12 +14,14 @@ import (
 
 const releaseKind = "release"
 
+// Asset struct
 type Asset struct {
 	ContentType string `json:"content_type"`
 	Downloads   int64  `json:"download_count"`
 	Name        string `json:"name"`
 }
 
+// Release struct
 type Release struct {
 	Assets     *[]Asset `json:"assets"`
 	Draft      bool     `json:"draft"`
@@ -28,7 +31,7 @@ type Release struct {
 	Repo       string   `json:"repo,omitempty"`
 }
 
-func (r *Release) printJson() {
+func (r *Release) printJSON() {
 	for _, asset := range *r.Assets {
 		v := map[string]interface{}{
 			"asset":     asset.Name,

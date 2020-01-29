@@ -48,6 +48,9 @@ func getJSON(url, user, token string, insecure bool, target interface{}) (string
 	}
 
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("Error Creating request: %v", err)
+	}
 	req.Header.Add("Authorization", getAuthHeader(user, token))
 	resp, err := client.Do(req)
 	if err != nil {

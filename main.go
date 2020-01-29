@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// Version var
 	Version  = "dev"
 	released = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`)
 )
@@ -64,10 +65,8 @@ func mainErr() error {
 
 		influxdb := ctx.GlobalString("influxdb")
 		influxurl := ctx.GlobalString("influxurl")
-		if output == "influx" {
-			if len(influxdb) == 0 || len(influxurl) == 0 {
-				return fmt.Errorf("Check your influxdb and/or influxurl params.")
-			}
+		if output == "influx" && (len(influxdb) == 0 || len(influxurl) == 0) {
+			return fmt.Errorf("Check your influxdb and/or influxurl params")
 		}
 		return nil
 	}
