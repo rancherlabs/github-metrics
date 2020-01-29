@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	influxFlush = 60
+	influxCheck = 3600
 )
 
 var csvSeparator string
