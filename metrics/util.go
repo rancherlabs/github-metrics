@@ -35,7 +35,7 @@ func getJSON(url, user, token string, insecure bool, target interface{}) (string
 			req.Header.Add("Authorization", getAuthHeader(user, token))
 			return nil
 		},
-		Timeout: 15 * time.Second,
+		Timeout: 60 * time.Second,
 	}
 
 	if insecure {
