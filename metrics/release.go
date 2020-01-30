@@ -12,7 +12,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const releaseKind = "release"
+const (
+	releaseKind  = "release"
+	releasePatch = "patch"
+	releaseMinor = "minor"
+)
 
 // Asset struct
 type Asset struct {
@@ -101,10 +105,10 @@ func (r *Release) getName(option string) string {
 	}
 
 	name := r.Name
-	if option == "patch" && nameFormat.MatchString(name) {
+	if option == releasePatch && nameFormat.MatchString(name) {
 		name = nameFormat.ReplaceAllString(name, "$1$2.$3.$4")
 	}
-	if option == "minor" && nameFormat.MatchString(name) {
+	if option == releaseMinor && nameFormat.MatchString(name) {
 		name = nameFormat.ReplaceAllString(name, "$1$2.$3.x")
 	}
 
@@ -130,6 +134,24 @@ func (r *Release) filterAssets(match string) {
 			continue
 		}
 		newAsset = append(newAsset, asset)
+	}
+	r.Assets = &newAsset
+}
+
+func (r *Release) aggregateAssets(rel *Release) {
+	newAsset := *r.Assets
+	for _, relAsset := range *rel.Assets {
+		found := false
+		for i := range newAsset {
+			if newAsset[i].Name == relAsset.Name {
+				newAsset[i].Downloads += relAsset.Downloads
+				found = true
+				break
+			}
+		}
+		if !found {
+			newAsset = append(newAsset, relAsset)
+		}
 	}
 	r.Assets = &newAsset
 }

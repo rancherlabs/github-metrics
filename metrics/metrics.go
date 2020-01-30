@@ -219,16 +219,34 @@ func (r *Metrics) getRelease(stop chan struct{}) {
 }
 
 func (r *Metrics) filterReleases(releases *[]Release) {
+	filterReleases := map[string]*Release{}
+
 	for _, release := range *releases {
-		release.Org = r.Config.org
-		release.Repo = r.Config.repo
 		if !r.Config.prerelease && release.Prerelease {
 			continue
 		}
+		if r.Config.patch {
+			release.Name = release.getName(releasePatch)
+		}
+		if r.Config.minor {
+			release.Name = release.getName(releaseMinor)
+		}
+		release.Org = r.Config.org
+		release.Repo = r.Config.repo
 		release.filterAssets(r.Config.match)
-		if len(*release.Assets) > 0 {
-			input := release
-			r.Input <- &input
+
+		newRel := release
+		if _, exist := filterReleases[release.Name]; !exist {
+			filterReleases[release.Name] = &newRel
+		} else {
+			filterReleases[release.Name].aggregateAssets(&newRel)
+		}
+	}
+
+	for _, rel := range filterReleases {
+		if len(*rel.Assets) > 0 {
+			input := rel
+			r.Input <- input
 		}
 	}
 }
